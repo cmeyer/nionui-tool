@@ -2116,7 +2116,9 @@ void PyCanvasRenderThread::run()
         while (m_needs_render && !m_cancel)
         {
             m_needs_render = false;
+            // qDebug() << "will render " << QDateTime::currentMSecsSinceEpoch() << " " << (void *)m_canvas << " " << m_canvas->size();
             m_canvas->render();
+            // qDebug() << "will emit " << QDateTime::currentMSecsSinceEpoch() << " " << (void *)m_canvas << " " << m_canvas->size();
             Q_EMIT renderingReady();
         }
     }
@@ -2160,7 +2162,7 @@ void PyCanvas::focusInEvent(QFocusEvent *event)
         app->dispatchPyMethod(m_py_object, "focusIn", QVariantList());
     }
 
-    QWidget::focusInEvent(event);
+    QOpenGLWidget::focusInEvent(event);
 }
 
 void PyCanvas::focusOutEvent(QFocusEvent *event)
@@ -2173,7 +2175,7 @@ void PyCanvas::focusOutEvent(QFocusEvent *event)
         app->dispatchPyMethod(m_py_object, "focusOut", QVariantList());
     }
 
-    QWidget::focusOutEvent(event);
+    QOpenGLWidget::focusOutEvent(event);
 }
 
 void PyCanvas::render()
@@ -2199,6 +2201,7 @@ void PyCanvas::render()
 
     //QDateTime start = QDateTime::currentDateTime();
 
+    // qDebug() << "render1 " << QDateTime::currentMSecsSinceEpoch() << " " << (void *)this << " " << this->size();
     RenderedTimeStamps rendered_timestamps = PaintBinaryCommands(painter, commands_binary, imageMap, &m_image_cache);
 
     PaintCommands(painter, commands, &m_image_cache);
@@ -2225,6 +2228,7 @@ void PyCanvas::render()
 
     //qDebug() << "Paint " << QDateTime::currentDateTime() << " elapsed " << start.msecsTo(QDateTime::currentDateTime())/1000.0;
 
+    // qDebug() << "render2 " << QDateTime::currentMSecsSinceEpoch() << " " << (void *)this << " " << this->size();
     {
         QMutexLocker locker(&m_rendered_image_mutex);
         m_rendered_image = image;
@@ -2232,13 +2236,11 @@ void PyCanvas::render()
     }
 }
 
-void PyCanvas::paintEvent(QPaintEvent *event)
+void PyCanvas::paintGL()
 {
-    Q_UNUSED(event)
+    // qDebug() << "begin paint " << QDateTime::currentMSecsSinceEpoch() << " " << (void *)this << " " << this->size();
 
-    QPainter painter;
-
-    painter.begin(this);
+    QPainter painter(this);
 
     QImage image;
     RenderedTimeStamps rendered_timestamps;
@@ -2249,6 +2251,7 @@ void PyCanvas::paintEvent(QPaintEvent *event)
         rendered_timestamps = m_rendered_timestamps;
     }
 
+    painter.eraseRect(rect());
     painter.drawImage(QPointF(0, 0), image);
 
     QMap<QDateTime, QDateTime> known_dts = m_known_dts;
@@ -2279,6 +2282,8 @@ void PyCanvas::paintEvent(QPaintEvent *event)
         painter.fillPath(path, Qt::black);
         painter.restore();
     }
+
+    // qDebug() << "end paint " << QDateTime::currentMSecsSinceEpoch() << " " << (void *)this << " " << this->size();
 }
 
 bool PyCanvas::event(QEvent *event)
@@ -2304,7 +2309,7 @@ bool PyCanvas::event(QEvent *event)
         } break;
         default: break;
     }
-    return QWidget::event(event);
+    return QOpenGLWidget::event(event);
 }
 
 void PyCanvas::enterEvent(QEvent *event)
@@ -2414,7 +2419,7 @@ void PyCanvas::wheelEvent(QWheelEvent *event)
 
 void PyCanvas::resizeEvent(QResizeEvent *event)
 {
-    QWidget::resizeEvent(event);
+    QOpenGLWidget::resizeEvent(event);
     if (m_py_object.isValid())
     {
         float display_scaling = GetDisplayScaling();
@@ -2439,7 +2444,7 @@ void PyCanvas::keyPressEvent(QKeyEvent *event)
         }
     }
 
-    QWidget::keyPressEvent(event);
+    QOpenGLWidget::keyPressEvent(event);
 }
 
 void PyCanvas::keyReleaseEvent(QKeyEvent *event)
@@ -2457,7 +2462,7 @@ void PyCanvas::keyReleaseEvent(QKeyEvent *event)
         }
     }
 
-    QWidget::keyReleaseEvent(event);
+    QOpenGLWidget::keyReleaseEvent(event);
 }
 
 void PyCanvas::contextMenuEvent(QContextMenuEvent *event)
@@ -2555,12 +2560,12 @@ void PyCanvas::dragEnterEvent(QDragEnterEvent *event)
         }
         else
         {
-            QWidget::dragEnterEvent(event);
+            QOpenGLWidget::dragEnterEvent(event);
         }
     }
     else
     {
-        QWidget::dragEnterEvent(event);
+        QOpenGLWidget::dragEnterEvent(event);
     }
 }
 
@@ -2576,12 +2581,12 @@ void PyCanvas::dragLeaveEvent(QDragLeaveEvent *event)
         }
         else
         {
-            QWidget::dragLeaveEvent(event);
+            QOpenGLWidget::dragLeaveEvent(event);
         }
     }
     else
     {
-        QWidget::dragLeaveEvent(event);
+        QOpenGLWidget::dragLeaveEvent(event);
     }
 }
 
@@ -2608,18 +2613,18 @@ void PyCanvas::dragMoveEvent(QDragMoveEvent *event)
         }
         else
         {
-            QWidget::dragMoveEvent(event);
+            QOpenGLWidget::dragMoveEvent(event);
         }
     }
     else
     {
-        QWidget::dragMoveEvent(event);
+        QOpenGLWidget::dragMoveEvent(event);
     }
 }
 
 void PyCanvas::dropEvent(QDropEvent *event)
 {
-    QWidget::dropEvent(event);
+    QOpenGLWidget::dropEvent(event);
     if (m_py_object.isValid())
     {
         Application *app = dynamic_cast<Application *>(QCoreApplication::instance());
@@ -2641,12 +2646,12 @@ void PyCanvas::dropEvent(QDropEvent *event)
         }
         else
         {
-            QWidget::dropEvent(event);
+            QOpenGLWidget::dropEvent(event);
         }
     }
     else
     {
-        QWidget::dropEvent(event);
+        QOpenGLWidget::dropEvent(event);
     }
 }
 

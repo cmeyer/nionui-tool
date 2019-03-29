@@ -21,6 +21,7 @@
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QListView>
+#include <QtWidgets/QOpenGLWidget>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QRadioButton>
 #include <QtWidgets/QScrollArea>
@@ -491,7 +492,7 @@ private:
     bool m_needs_render;
 };
 
-class PyCanvas : public QWidget
+class PyCanvas : public QOpenGLWidget
 {
     Q_OBJECT
 public:
@@ -513,7 +514,8 @@ public:
     virtual void focusInEvent(QFocusEvent *event) override;
     virtual void focusOutEvent(QFocusEvent *event) override;
 
-    virtual void paintEvent(QPaintEvent *event) override;
+    virtual void paintGL() override;
+
     virtual void resizeEvent(QResizeEvent *event) override;
 
     virtual void keyPressEvent(QKeyEvent *event) override;
