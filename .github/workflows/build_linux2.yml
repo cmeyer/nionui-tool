@@ -1,10 +1,12 @@
 name: Build (Linux2)
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      release-version:
+        description: 'Release version tag'
+        default: 'v1.0.0'
+        required: true
 
 jobs:
   build:
